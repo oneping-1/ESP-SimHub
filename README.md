@@ -1,5 +1,6 @@
 # SimHub firmware for ESP32 and ESP8266
 Documentation: [ESP SimHub Firmware documentation - ecrowne.com](http://ecrowne.com/)
+
 Head over to the discord server to discuss this firmware: [DISCORD](https://discord.gg/CfvJySWTcE) 
 
 ## What is this?
