@@ -362,38 +362,37 @@ SHRGBMatrixSunfounderSH104P shRGBMatrixSunfounderSH104P;
 // -------------------------------------------------------------------------------------------------------
 // I2C LiquidCristal
 // http://www.dx.com/p/arduino-iic-i2c-serial-3-2-lcd-2004-module-display-138611#.Vb0QtW7tlBd
-// Board				I2C / TWI pins
-// Uno, Ethernet, Nano	A4(SDA), A5(SCL)
-// Mega2560				20 (SDA), 21 (SCL)
-// Leonardo				2 (SDA), 3 (SCL)
-// Due					20 (SDA), 21 (SCL), SDA1, SCL1
 // -------------------------------------------------------------------------------------------------------
 #define I2CLCD_enabled 0   //{"Group":"20x4 I2C LCD","Name":"I2CLCD_enabled","Title":"I2C LCD (2004) enabled\r\nUno, Ethernet, Nano : A4(SDA), A5(SCL)\r\nMega2560 : 20 (SDA), 21 (SCL)\r\nLeonardo : 2 (SDA), 3 (SCL)\r\nDue : 20 (SDA), 21 (SCL), SDA1, SCL1","DefaultValue":"0","Type":"bool","Pins":"328:18,I2C LCD SDA;19,I2C LCD SCL|micro:2,I2C LCD SDA;3,I2C LCD SCL|mega:20,I2C LCD SDA;21,I2C LCD SCL"}
 #ifdef INCLUDE_I2CLCD
-#define I2CLCD_size 0      //{"Name":"I2CLCD_size","Title":"LCD size","DefaultValue":"0","Type":"list","Condition":"I2CLCD_enabled>0","ListValues":"0,20x4;1,16x2"}
-#define I2CLCD_ADDRESS 0x3f //{"Name":"I2CLCD_ADDRESS","Title":"I2C address (0x30, 0x27 ... )","DefaultValue":"0x3f","Type":"hex","Condition":"I2CLCD_enabled>0"}
-#define I2CLCD_LIBRARY 0   //{"Name":"I2CLCD_LIBRARY","Title":"I2C library","DefaultValue":"0","Type":"list","Condition":"I2CLCD_enabled>0","ListValues":"0,PCF8574AT (DFRobot);1,PCF8574T"}
+#define I2CLCD_size 1      //{"Name":"I2CLCD_size","Title":"LCD size","DefaultValue":"0","Type":"list","Condition":"I2CLCD_enabled>0","ListValues":"0,20x4;1,16x2"}
+#define I2CLCD_ADDRESS 0x27//{"Name":"I2CLCD_ADDRESS","Title":"I2C address (0x30, 0x27 ... )","DefaultValue":"0x3f","Type":"hex","Condition":"I2CLCD_enabled>0"}
+#define I2CLCD_LIBRARY 1   //{"Name":"I2CLCD_LIBRARY","Title":"I2C library","DefaultValue":"0","Type":"list","Condition":"I2CLCD_enabled>0","ListValues":"0,PCF8574AT (DFRobot);1,PCF8574T"}
 #define I2CLCD_TEST 0      //{"Name":"I2CLCD_TEST","Title":"TESTING MODE : Show hello world at startup","DefaultValue":"0","Type":"bool","Condition":"I2CLCD_enabled>0"}
+// TODO: move these top level because the i2c bus is universal, not specific to this LCD
+#define I2CLCD_SDA SDA // define your i2c SDA pin here, it is set by default to the hardware pin but you can set it to any number
+#define I2CLCD_SCL SCL // define your i2c SCL pin here, it is set by default to the hardware pin but you can set it to any number
 
-#define I2CLCD_20x4        //{"Name":"I2CLCD_20x4","Type":"autodefine","Condition":"[I2CLCD_size]=0"}
-//#define I2CLCD_16x2        //{"Name":"I2CLCD_16x2","Type":"autodefine","Condition":"[I2CLCD_size]=1"}
-
-#ifdef  I2CLCD_20x4
-#define I2CLCD_WIDTH 20
-#define I2CLCD_HEIGHT 4
-#else
+#if I2CLCD_size
 #define I2CLCD_WIDTH 16
 #define I2CLCD_HEIGHT 2
+#else
+#define I2CLCD_WIDTH 20
+#define I2CLCD_HEIGHT 4
 #endif
 
+#if I2CLCD_LIBRARY
+#define I2CLCD_PCF8574T    //{"Name":"I2CLCD_PCF8574T","Type":"autodefine","Condition":"[I2CLCD_LIBRARY]=1"}
+#else
 #define I2CLCD_PCF8574AT   //{"Name":"I2CLCD_PCF8574AT","Type":"autodefine","Condition":"[I2CLCD_LIBRARY]=0"}
-//#define I2CLCD_PCF8574T    //{"Name":"I2CLCD_PCF8574T","Type":"autodefine","Condition":"[I2CLCD_LIBRARY]=1"}
+#endif
+
 
 // DF ROBOT - PCF8574AT
 #ifdef  I2CLCD_PCF8574AT
-#include <LiquidCrystal_I2C.h>
+#include <LCD_I2C.h>
 #include <SHI2CLcd_PCF8574AT.h>
-LiquidCrystal_I2C I2CLCD(I2CLCD_ADDRESS, I2CLCD_WIDTH, I2CLCD_HEIGHT);
+LCD_I2C I2CLCD(I2CLCD_ADDRESS, I2CLCD_WIDTH, I2CLCD_HEIGHT);
 #endif
 
 #ifdef  I2CLCD_PCF8574T
@@ -1217,7 +1216,12 @@ void setup()
 
 	// LCD INIT
 #ifdef INCLUDE_I2CLCD
-	shI2CLcd.begin(&I2CLCD, I2CLCD_WIDTH, I2CLCD_HEIGHT, I2CLCD_TEST);
+#if ESP32
+	Wire.setPins(I2CLCD_SDA, I2CLCD_SCL);
+#else
+	Wire.pins(I2CLCD_SDA, I2CLCD_SCL);
+#endif
+	shI2CLcd.begin(&I2CLCD, I2CLCD_WIDTH, I2CLCD_HEIGHT, I2CLCD_TEST, Wire);
 #endif
 
 #ifdef INCLUDE_LEDBACKPACK
