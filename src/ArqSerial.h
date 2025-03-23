@@ -203,7 +203,7 @@ public:
 			}
 
 			ProcessIncomingData();
-		} while (millis() - fsr_startMillis < 400 || DataBuffer.size() > 0);
+		} while (millis() - fsr_startMillis < 32 || DataBuffer.size() > 0);
 
 		//DebugPrintLn("Read timeout !");
 		return -1;
